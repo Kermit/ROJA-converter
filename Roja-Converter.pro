@@ -14,13 +14,13 @@ CONFIG   -= app_bundle
 TEMPLATE = app
 
 
-SOURCES += main.cpp \
-    chmfile.cpp \
-    config.cpp
+SOURCES += src/main.cpp \
+    src/chmfile.cpp \
+    src/config.cpp
 
 HEADERS += \
-    chmfile.h \
-    config.h
+    src/chmfile.h \
+    src/config.h
 
 
 
