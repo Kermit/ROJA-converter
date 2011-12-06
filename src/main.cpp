@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     Config::checkConfig();
 
     CHMFile chmFile;
-    chmFile.convertCHM();
+    chmFile.startConvert();
+
     return a.exec();
 }

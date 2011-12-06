@@ -5,18 +5,29 @@
 
 QString Config::homeDir()
 {
-    QDir homeDir(QDir::home());
-    homeDir.cd(".roja-converter");
-
-    return homeDir.absolutePath();
+    return QDir::home().absolutePath() + QDir::separator() + ".roja-converter";
 }
 
-void Config::checkConfig()
+bool Config::checkConfig()
 {
     QDir homeDir(QDir::home());
     if (!homeDir.cd(".roja-converter"))
     {
-        homeDir.mkdir(".roja-converter");
-        homeDir.cd(".roja-converter");
+        if (!homeDir.mkdir(".roja-converter") || !homeDir.cd(".roja-converter"))
+        {
+            return false;
+        }
     }
+
+    return true;
+}
+
+QString Config::tempDir()
+{
+    return homeDir() + QDir::separator() + "Temp";
+}
+
+QString Config::databasePath()
+{
+    return homeDir() + "/" + "RojaDatabase.db.sqlite";
 }

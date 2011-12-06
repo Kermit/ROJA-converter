@@ -11,7 +11,9 @@ class Config
 {
 public:
     static QString homeDir();
-    static void checkConfig();
+    static bool checkConfig();
+    static QString tempDir();
+    static QString databasePath();
 };
 
 #endif // CONFIG_H
