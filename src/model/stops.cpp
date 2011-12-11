@@ -36,3 +36,8 @@ int Stops::getCommuneID()
 {
     return communeID;
 }
+
+QString Stops::toString()
+{
+     return QString("%1, %2, %3").arg(id).arg(name).arg(communeID);
+}

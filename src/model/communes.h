@@ -19,6 +19,7 @@ public:
     int getNumber();
     void setName(QString value);
     QString getName();
+    QString toString();
 };
 
 #endif // COMMUNES_H

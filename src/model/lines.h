@@ -22,6 +22,7 @@ public:
     int getRoute1ID();
     void setRoute2ID(int value);
     int getRoute2ID();
+    QString toString();
 };
 
 #endif // LINES_H

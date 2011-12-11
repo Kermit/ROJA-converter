@@ -19,6 +19,7 @@ public:
     QString getName();
     void setCommuneID(int value);
     int getCommuneID();
+    QString toString();
 };
 
 #endif // STOPS_H

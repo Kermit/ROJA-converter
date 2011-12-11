@@ -3,7 +3,7 @@
 
 #include <QtCore/QString>
 
-class Day
+class Days
 {
 private:
     int id;
@@ -11,7 +11,7 @@ private:
     QString name;
 
 public:
-    Day();
+    Days();
 
     void setID(int value);
     int getID();

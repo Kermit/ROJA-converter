@@ -4,8 +4,16 @@
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QDir>
+#include <QtCore/QHash>
 #include <QtNetwork/QNetworkAccessManager>
-#include <QtSql/QSqlDatabase>
+
+#include "src/database.h"
+#include "src/model/lines.h"
+#include "src/model/stops.h"
+#include "src/model/routes.h"
+#include "src/model/days.h"
+#include "src/model/communes.h"
+#include "src/model/routesdetails.h"
 
 class QNetworkReply;
 
@@ -14,21 +22,39 @@ class CHMFile : public QObject
     Q_OBJECT
 
 private:
+    enum
+    {
+        ELines = 0,
+        ERoutes,
+        EStops,
+        ECommunes,
+        EDays,
+        ERoutesDetails,
+        ETimes
+    };
+
+    Database database;
     QNetworkAccessManager downloadManager;
     QString filename;
     QNetworkReply *downloadFileReply;
-    QSqlDatabase rojaDatabase; 
+
+    int ids[7];
+    QHash<QString, Lines> lines;
+    QHash<QString, Stops> stops;
+    QHash<QString, Days> days;
+    QHash<int, Communes> communes;
+    QHash<int, RoutesDetails> routesDetails;
 
     void convert();
     void unZipCHM();
     void decompressCHM();
-    void cleanSource();
+    void cleanSource();    
     void cleanAfterConvert();
-    void convertDir(QDir dir);
 
-    void createDatabase();
-    void createTables();
-    void setDefaultSettings();
+    void getActualTimetable(QDir directory);
+    void convertDir(QDir dir);
+    void getCommunes(QString filePath);
+    void getRoutes(QString filePath, Lines &line);
 
     bool deleteDir(const QString &dirName);
     static bool compareNames(const QString &s1, const QString &s2);

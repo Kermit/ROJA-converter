@@ -36,3 +36,8 @@ QString Communes::getName()
 {
     return name;
 }
+
+QString Communes::toString()
+{
+    return QString("%1, %2, %3").arg(id).arg(number).arg(name);
+}

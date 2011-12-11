@@ -5,7 +5,7 @@ RoutesDetails::RoutesDetails()
     id = -1;
     routeID = -1;
     stopID = -1;
-    order = -1;
+    lineID = -1;
 }
 
 void RoutesDetails::setID(int value)
@@ -38,12 +38,27 @@ int RoutesDetails::getStopID()
     return stopID;
 }
 
-void RoutesDetails::setOrder(int value)
+void RoutesDetails::setLineID(int value)
 {
-    order = value;
+    lineID = value;
 }
 
-int RoutesDetails::getOrder()
+int RoutesDetails::getLineID()
 {
-    return order;
+    return lineID;
+}
+
+void RoutesDetails::setRoutesDetailsID(int value)
+{
+    routesDetailsID = value;
+}
+
+int RoutesDetails::getRoutesDetailsID()
+{
+    return routesDetailsID;
+}
+
+QString RoutesDetails::toString()
+{
+    return QString("%1, %2, %3, %4").arg(id).arg(lineID).arg(stopID).arg(routeID);
 }

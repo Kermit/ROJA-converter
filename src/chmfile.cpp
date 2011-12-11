@@ -2,18 +2,16 @@
 #include "config.h"
 
 #include <QtCore/QCoreApplication>
-#include <QUrl>
-#include <QNetworkReply>
 #include <QtCore/QRegExp>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 #include <QtCore/QDebug>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlTableModel>
-#include <QtSql/QSqlRecord>
-
-#include <QtAlgorithms>
+#include <QtCore/QDate>
+#include <QtCore/QUrl>
+#include <QtCore/QTextCodec>
+#include <QtCore/QtAlgorithms>
+#include <QtNetwork/QNetworkReply>
 
 #include <iostream>
 
@@ -25,6 +23,11 @@ using namespace std;
 CHMFile::CHMFile(QObject *parent) :
     QObject(parent)
 {
+    for (int i = 0; i < 7; ++i)
+    {
+        ids[i] = 1;
+    }
+
     connect(&downloadManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(DownloadFinished(QNetworkReply*)));
 }
 
@@ -134,9 +137,7 @@ void CHMFile::convert()
     decompressCHM();
     cleanSource();
 
-    //Wydzielić do klasy database
-    createDatabase();
-    setDefaultSettings();
+    database.createDatabase();
 
     // Start convert all dirs
     QDir sourceDir(Config::tempDir());
@@ -149,6 +150,11 @@ void CHMFile::convert()
         }
     }
 
+    database.setDefaultSettings(filename);
+    database.addToCommunesTable(communes);
+    database.addToStopsTable(stops);
+    database.addToLinesTable(lines);
+    database.addToRoutesDetailsTable(routesDetails);
     cleanAfterConvert();
     qApp->exit(1);
 }
@@ -205,46 +211,100 @@ void CHMFile::cleanSource()
     foreach (QFileInfo fileInfo, sourceDir.entryInfoList((QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
                                                           QDir::AllDirs | QDir::Files), QDir::DirsFirst))
     {
-       if (fileInfo.fileName() == "img" || fileInfo.fileName() == "style")
-       {
-           deleteDir(sourceDir.absolutePath() + QDir::separator() + fileInfo.fileName());
+        if (fileInfo.isDir())
+        {
+            if (fileInfo.fileName() == "img" || fileInfo.fileName() == "style")
+            {
+                deleteDir(sourceDir.absolutePath() + QDir::separator() + fileInfo.fileName());
+            }
+            else
+            {
+                getActualTimetable(QDir(fileInfo.filePath()));
+            }
         }
 
-       if (fileInfo.fileName().at(0) == '$' || fileInfo.fileName().at(0) == '#' || fileInfo.fileName() == "index.html")
-       {
-           QFile tempFile(fileInfo.fileName());
-           tempFile.remove(sourceDir.absoluteFilePath(fileInfo.fileName()));
-       }
+        if (fileInfo.fileName().at(0) == '$' || fileInfo.fileName().at(0) == '#' || fileInfo.fileName() == "index.html")
+        {
+            QFile tempFile(fileInfo.fileName());
+            tempFile.remove(sourceDir.absoluteFilePath(fileInfo.fileName()));
+        }
     }
 }
 
-void CHMFile::createDatabase()
+void CHMFile::getActualTimetable(QDir directory)
 {
-    rojaDatabase = QSqlDatabase::addDatabase("QSQLITE");
-    rojaDatabase.setDatabaseName(Config::databasePath());
-    if (rojaDatabase.open())
+    QDate nearestDate;
+    QStringList trasyFiles = directory.entryList(QStringList("trasy*"));
+
+    if (trasyFiles.count() > 1)
     {
-        QSqlQuery settingsTable;
-        settingsTable.exec("CREATE TABLE settings"
-                           "(id integer primary key, "
-                           "name varchar(20),"
-                           "value varchar(10))");
+        QDate nowDate = QDate::currentDate();
+        trasyFiles.removeOne("trasy.html");
+        trasyFiles.replaceInStrings("trasy", "");
+        trasyFiles.replaceInStrings(".html", "");
+
+        foreach (QString stringDate, trasyFiles)
+        {
+            QDate date = QDate::fromString(stringDate, "yyyy-MM-dd");
+            if (nowDate > date && date > nearestDate)
+            {
+                nearestDate = date;
+            }
+        }
+
+        // Delete "trasy.html" file.
+        // We don't need this file in that case
+        QFile(directory.path() + QDir::separator() + "trasy.html").remove();
+
+        foreach(QString stringDate, trasyFiles)
+        {
+            if (stringDate != nearestDate.toString("yyyy-MM-dd"))
+            {
+                QFile routeFile(directory.path() + QDir::separator() + "trasy" + stringDate + ".html");
+                if (routeFile.open(QIODevice::ReadOnly))
+                {
+                    QStringList filesToDelete;
+
+                    QString html = routeFile.readAll();
+                    QRegExp routeNumbersRE("style=\"font-weight:bold;\" ><a href=\"(\\d+)_(\\d+).html");
+                    int regExpPos = 0;
+
+                    while ((regExpPos = routeNumbersRE.indexIn(html, regExpPos)) != -1)
+                    {
+                        filesToDelete << routeNumbersRE.cap(2);
+                        regExpPos += routeNumbersRE.matchedLength();
+                    }
+
+                    qDebug() << filesToDelete;
+                    QFileInfoList files = directory.entryInfoList(QStringList("*.html"));
+                    foreach (QFileInfo fileInfo, files)
+                    {
+                        foreach (QString str, filesToDelete)
+                        {
+                            if (fileInfo.fileName().contains(str))
+                            {
+                                QFile(fileInfo.filePath()).remove();
+                            }
+                        }
+                    }
+
+                    routeFile.close();
+                }
+
+                routeFile.remove();
+            }
+            else
+            {
+                QFile::rename(directory.path() + QDir::separator() + "trasy" + stringDate + ".html",
+                              directory.path() + QDir::separator() + "trasy.html");
+            }
+        }
+
+        qDebug() << nearestDate;
+        qDebug() << directory.dirName();
+        qDebug() << trasyFiles;
+        qDebug() << "\n";
     }
-}
-
-void CHMFile::setDefaultSettings()
-{
-    QSqlTableModel settingsTable(this, rojaDatabase);
-    settingsTable.setTable("settings");
-    settingsTable.setEditStrategy(QSqlTableModel::OnManualSubmit);
-
-    QSqlRecord settingsRecord = settingsTable.record();
-    settingsRecord.setNull("id");
-    settingsRecord.setValue("name", "version");
-    settingsRecord.setValue("value", filename);
-
-    settingsTable.insertRecord(-1,settingsRecord);
-    settingsTable.submitAll();
 }
 
 bool CHMFile::deleteDir(const QString &dirName)
@@ -289,12 +349,145 @@ bool CHMFile::deleteDir(const QString &dirName)
 */
 void CHMFile::convertDir(QDir dir)
 {
+    Lines line;
+    line.setID(ids[ELines]);
+    line.setNumber(dir.dirName());
+    lines.insert(line.getNumber(), line);
+
     QStringList fileList = dir.entryList((QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files), QDir::Name);
     qSort(fileList.begin(), fileList.end(), compareNames);
 
+    QString routesFilePath = dir.absoluteFilePath("trasy.html");
+    getCommunes(routesFilePath);
+    getRoutes(routesFilePath, line);
+
     foreach (QString fileInfo, fileList)
     {
-        cout << fileInfo.toStdString() << endl;
+
+    }
+
+    ++ids[ELines];
+}
+
+void CHMFile::getCommunes(QString filePath)
+{
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QTextStream stream(&file);
+        stream.setCodec("UTF-8");
+        QString html = stream.readAll();
+        QRegExp communeRegExp("gmina_(\\d+)\"></td><td> ([a-zA-ZęóąśłżźćńĘÓĄŚŁŻŹĆŃ\\s\\.]+)");
+        int regExpPos = 0;
+
+        while ((regExpPos = communeRegExp.indexIn(html, regExpPos)) != -1)
+        {
+            if (!communes.contains(communeRegExp.cap(1).toInt()))
+            {
+                Communes commune;
+                commune.setID(ids[ECommunes]);
+                commune.setNumber(communeRegExp.cap(1).toInt());
+                commune.setName(communeRegExp.cap(2));
+                communes.insert(commune.getNumber(), commune);
+
+                ++ids[ECommunes];
+            }
+            regExpPos += communeRegExp.matchedLength();
+        }
+
+        file.close();
+    }
+}
+
+void CHMFile::getRoutes(QString filePath, Lines &line)
+{
+    uint type = 0;
+
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        QTextStream stream(&file);
+        stream.setCodec("UTF-8");
+
+        QRegExp leftRoute("<div id=\"lewo\">");
+        QRegExp rightRoute("<div id=\"prawo\">");
+        QRegExp middleRoute("<div id=\"srodek\">");
+        QRegExp stopRE(QString("td_darr\\d? gmina_(\\d+)\"></td><td class=\" td_przystanek(_wariant_\\d)? \"") +
+                       QString("( style=\"font-weight:bold;\" )?>") +
+                       QString("<a href=\"(\\d+)_\\d\\d\\d\\d.html\">([a-zA-Z0-9ęóąśłżźćńĘÓĄŚŁŻŹĆŃ\\s\\.\\*+-_]+)</a>"));
+
+        while (!stream.atEnd())
+        {
+            QString htmlLine = stream.readLine();
+            Stops stop;
+
+            if (leftRoute.indexIn(htmlLine) != -1)
+            {
+                type = 1;
+            }
+
+            if (rightRoute.indexIn(htmlLine) != -1)
+            {
+                type = 2;
+            }
+
+            if (middleRoute.indexIn(htmlLine) != -1)
+            {
+                type = 3;
+            }
+
+            if (stopRE.indexIn(htmlLine) != -1)
+            {
+                if (!stops.contains(stopRE.cap(5)))
+                {
+                    Communes commune = communes.value(stopRE.cap(1).toInt());
+                    stop.setID(ids[EStops]);
+                    stop.setName(stopRE.cap(5));
+                    stop.setCommuneID(commune.getID());
+
+                    ++ids[EStops];
+                    stops.insert(stop.getName(), stop);
+                }
+                else
+                {
+                    stop = stops.value(stopRE.cap(5));
+                }
+            }
+
+            RoutesDetails routeDetails;
+            routeDetails.setID(ids[ERoutesDetails]);
+            routeDetails.setLineID(line.getID());
+            routeDetails.setStopID(stop.getID());
+
+            // Set parent if it's not first stop on that route.
+            if (stopRE.cap(4).toInt() > 1)
+            {
+                RoutesDetails parent = routesDetails.value(ids[ERoutesDetails]--);
+                parent.setRoutesDetailsID(routeDetails.getID());
+            }
+            else
+            {
+                if (type == 1)
+                {
+                    line.setRoute1ID(routeDetails.getID());
+                }
+
+                if (type == 2)
+                {
+                    line.setRoute2ID(routeDetails.getID());
+                }
+
+                if (type == 3)
+                {
+                    line.setRoute1ID(routeDetails.getID());
+                    line.setRoute2ID(routeDetails.getID());
+                }
+            }
+
+            routesDetails.insert(routeDetails.getID(), routeDetails);
+            ++ids[ERoutesDetails];
+        }
+        file.close();
     }
 }
 

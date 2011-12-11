@@ -1,38 +1,38 @@
 #include "days.h"
 
-Day::Day()
+Days::Days()
 {
     id = -1;
     number = -1;
     name = "";
 }
 
-void Day::setID(int value)
+void Days::setID(int value)
 {
     id = value;
 }
 
-int Day::getID()
+int Days::getID()
 {
     return id;
 }
 
-void Day::setNumber(int value)
+void Days::setNumber(int value)
 {
     number = value;
 }
 
-int Day::getNumber()
+int Days::getNumber()
 {
     return number;
 }
 
-void Day::setName(QString value)
+void Days::setName(QString value)
 {
     name = value;
 }
 
-QString Day::getName()
+QString Days::getName()
 {
     return name;
 }

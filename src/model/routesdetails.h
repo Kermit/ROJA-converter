@@ -1,13 +1,16 @@
 #ifndef ROUTESDETAILS_H
 #define ROUTESDETAILS_H
 
+#include <QtCore/QString>
+
 class RoutesDetails
 {
 private:
     int id;
     int routeID;
     int stopID;
-    int order;
+    int lineID;
+    int routesDetailsID;
 
 public:
     RoutesDetails();
@@ -18,8 +21,11 @@ public:
     int getRouteID();
     void setStopID(int value);
     int getStopID();
-    void setOrder(int value);
-    int getOrder();
+    void setLineID(int value);
+    int getLineID();
+    void setRoutesDetailsID(int value);
+    int getRoutesDetailsID();
+    QString toString();
 };
 
 #endif // ROUTESDETAILS_H
