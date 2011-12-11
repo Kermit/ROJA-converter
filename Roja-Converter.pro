@@ -24,7 +24,8 @@ SOURCES += src/main.cpp \
     src/model/routes.cpp \
     src/model/times.cpp \
     src/model/routesdetails.cpp \
-    src/model/settings.cpp
+    src/model/settings.cpp \
+    src/database.cpp
 
 HEADERS += \
     src/chmfile.h \
@@ -36,7 +37,10 @@ HEADERS += \
     src/model/routes.h \
     src/model/times.h \
     src/model/routesdetails.h \
-    src/model/settings.h
+    src/model/settings.h \
+    src/database.h
+
+
 
 
 
