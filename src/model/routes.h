@@ -22,6 +22,7 @@ public:
     int getStopID();
     void setLineID(int value);
     int getLineID();
+    QString toString();
 };
 
 #endif // ROUTES_H

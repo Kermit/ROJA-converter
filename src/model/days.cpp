@@ -36,3 +36,8 @@ QString Days::getName()
 {
     return name;
 }
+
+QString Days::toString()
+{
+    return QString("%1, %2, %3").arg(id).arg(number).arg(name);
+}

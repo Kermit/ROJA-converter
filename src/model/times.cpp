@@ -50,6 +50,26 @@ int Times::getDayID()
     return dayID;
 }
 
+void Times::setRouteID(int value)
+{
+    routeID = value;
+}
+
+int Times::getRouteID()
+{
+    return routeID;
+}
+
+void Times::setRouteDetailsID(int value)
+{
+    routeDetailsID = value;
+}
+
+int Times::getRouteDetailsID()
+{
+    return routeDetailsID;
+}
+
 void Times::setTime(QString value)
 {
     time = value;
@@ -60,6 +80,16 @@ QString Times::getTime()
     return time;
 }
 
+void Times::setLegend(QString value)
+{
+    legend = value;
+}
+
+QString Times::getLegend()
+{
+    return legend;
+}
+
 void Times::setOptional(bool value)
 {
     optional = value;
@@ -68,4 +98,9 @@ void Times::setOptional(bool value)
 bool Times::getOptional()
 {
     return optional;
+}
+
+QString Times::toString()
+{
+    return QString("%1, %2, %3, %4, %5, %6").arg(id).arg(stopID).arg(lineID).arg(dayID).arg(time).arg(legend);
 }

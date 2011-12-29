@@ -10,7 +10,9 @@ private:
     int routeID;
     int stopID;
     int lineID;
-    int routesDetailsID;
+    int routesDetailsID;    
+    int onDemand;
+    int obligatory;
 
 public:
     RoutesDetails();
@@ -25,6 +27,10 @@ public:
     int getLineID();
     void setRoutesDetailsID(int value);
     int getRoutesDetailsID();
+    void setOnDemand(int value);
+    int getOnDemand();
+    void setObligatory(int value);
+    int getObligatory();
     QString toString();
 };
 

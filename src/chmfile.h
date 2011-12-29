@@ -14,6 +14,7 @@
 #include "src/model/days.h"
 #include "src/model/communes.h"
 #include "src/model/routesdetails.h"
+#include "src/model/times.h"
 
 class QNetworkReply;
 
@@ -44,6 +45,8 @@ private:
     QHash<QString, Days> days;
     QHash<int, Communes> communes;
     QHash<int, RoutesDetails> routesDetails;
+    QMultiHash<int, Times> times;
+    QHash<int, Routes> routes;
 
     void convert();
     void unZipCHM();
@@ -54,7 +57,8 @@ private:
     void getActualTimetable(QDir directory);
     void convertDir(QDir dir);
     void getCommunes(QString filePath);
-    void getRoutes(QString filePath, Lines &line);
+    void getRoutes(QString filePath, Lines &line, int &route1, int &route2);
+    void getTimes(QString filePath, Lines &line, int route1, int route2);
 
     bool deleteDir(const QString &dirName);
     static bool compareNames(const QString &s1, const QString &s2);

@@ -47,3 +47,8 @@ int Routes::getLineID()
 {
     return lineID;
 }
+
+QString Routes::toString()
+{
+    return QString("%1, %2, %3, %4)").arg(id).arg(startID).arg(stopID).arg(lineID);
+}
