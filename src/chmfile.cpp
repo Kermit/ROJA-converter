@@ -384,6 +384,7 @@ void CHMFile::convertDir(QDir dir)
     line.setID(ids[ELines]);
     line.setNumber(dir.dirName());    
 
+    cout << line.getNumber().toStdString() << endl;
     QStringList fileList = dir.entryList((QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files), QDir::Name);
     qSort(fileList.begin(), fileList.end(), compareNames);
 
@@ -553,7 +554,7 @@ void CHMFile::getRoutes(QString filePath, Lines &line, int &route1, int &route2)
                 QString stopName = stopRE.cap(5);
                 if (stopName.contains("Gojny"))
                 {
-                    int ss = 0;
+                    //int ss = 0;
                 }
                 if (stopName.contains(" <b>n/ż</b>"))
                 {
@@ -703,10 +704,14 @@ void CHMFile::getTimes(QString filePath, Lines &line, int route1, int route2)
             {
                 Stops currentStop = stops.value(currentStopName);
                 if (currentStop.getID() == -1)
-                    int ss =0;
+                {
+                    //int ss =0;
+                }
                 Stops wayStop = stops.value(wayStopName);
                 if (wayStop.getID() == -1)
-                    int ss =0;
+                {
+                    //int ss =0;
+                }
                 Routes currentRoute;
                 if (routes1.getStopID() == wayStop.getID())
                 {
@@ -791,7 +796,7 @@ void CHMFile::getTimes(QString filePath, Lines &line, int route1, int route2)
 
                     if (currentRD.getID() == -1)
                     {
-                        int s = 0;
+                        //int s = 0;
                     }
 
                     Times time;

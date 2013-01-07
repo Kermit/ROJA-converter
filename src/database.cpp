@@ -246,7 +246,9 @@ void Database::addToTimesTable(QMultiHash<int, Times> &data)
     rojaDatabase.transaction();
     data.remove(-1);
     if (data.keys().contains(-1))
-        int ss = 0;
+    {
+        //int ss = 0;
+    }
 
     foreach(int key, data.uniqueKeys())
     {
